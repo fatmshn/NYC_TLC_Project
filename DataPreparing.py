@@ -6,8 +6,9 @@ from methods import write_to_db, read_data_to_df, get_spark_session, generate_sh
     generate_fhvhv_df, generate_green_df, generate_yellow_df, parse_arguments
 from datetime import datetime,date
 
-arguments = parse_arguments()
-date_set =arguments.date
+# arguments = parse_arguments()
+# date_set =arguments.date
+date_set = "2019-09"
 date2 = datetime.strptime(date_set,"%Y-%m" )
 date2_m = date2.month
 last_month = date2_m - 1 if date2_m != 1 else 12
@@ -69,11 +70,19 @@ data_borough.show()
 
 
 """ 3: Create a history of popular rides in the database. For Zone """
-data_2 = spark.sql("SELECT month, PU_Zone, DO_Zone,c, ROW_NUMBER() OVER( PARTITION BY PU_Zone,month ORDER BY c DESC) AS r from (SELECT month, PU_Zone,DO_Zone,count(*) as c from tableA group by month, PU_Zone,DO_Zone) ")
-data_1 = spark.sql("SELECT month, PU_Zone, DO_Zone,c, ROW_NUMBER() OVER( PARTITION BY PU_Zone,month ORDER BY c DESC) AS r from (SELECT month, PU_Zone,DO_Zone,count(*) as c from tableA_pre group by month, PU_Zone,DO_Zone) ")
-data_1.createOrReplaceTempView("df1")
-data_2.createOrReplaceTempView("df2")
-data_zcom = spark.sql("select df2.month, df2.PU_Zone, df2.DO_Zone,df2.c, df2.r from df2 left join df1 on df2.r=df1.r where df2.r=1 and df2.PU_Zone=df1.PU_Zone and df2.DO_Zone=df1.DO_Zone")
-data_zone = data_2.subtract(data_zcom).orderBy("PU_Zone","r")
+data_z2 = spark.sql("SELECT month, PU_Zone, DO_Zone,c, ROW_NUMBER() OVER( PARTITION BY PU_Zone,month ORDER BY c DESC) AS r from (SELECT month, PU_Zone,DO_Zone,count(*) as c from tableA group by month, PU_Zone,DO_Zone) ")
+data_z1 = spark.sql("SELECT month, PU_Zone, DO_Zone,c, ROW_NUMBER() OVER( PARTITION BY PU_Zone,month ORDER BY c DESC) AS r from (SELECT month, PU_Zone,DO_Zone,count(*) as c from tableA_pre group by month, PU_Zone,DO_Zone) ")
+data_z1.createOrReplaceTempView("dfz1")
+data_z2.createOrReplaceTempView("dfz2")
+data_zcom = spark.sql("select dfz2.month, dfz2.PU_Zone, dfz2.DO_Zone,dfz2.c, dfz2.r from dfz2 left join dfz1 on dfz2.r=dfz1.r where dfz2.r=1 and dfz2.PU_Zone=dfz1.PU_Zone and dfz2.DO_Zone=dfz1.DO_Zone")
+data_zone = data_z2.subtract(data_zcom).orderBy("PU_Zone","r")
 data_zone.show()
 
+"""4: Provide an easy way to access the currently most popular destinations per pick-up location after each new dataset was ingested.
+Querying the history table to look up the current state of the statistics
+
+data_2 represent the popular borough , data_z2 represent the popular zone
+"""
+
+data_2.show()
+data_z2.show()

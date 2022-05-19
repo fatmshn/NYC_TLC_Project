@@ -13,7 +13,7 @@ The goal of the project is to create a pipeline using NYC taxi data. Using this 
 - They are vehicles that have 10,000 or more customers per day and have received the HVHFV license.
 - Data is generated automatically through the application.
 
-### PREREQUEST
+### PREREQUISITE
 ```
 Airflow : 2.2.4
 Python : 3.8
